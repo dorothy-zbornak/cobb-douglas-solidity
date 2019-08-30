@@ -1,0 +1,16 @@
+{
+    "name": "cobb-douglas-solidity",
+    "license": "Apache-2.0",
+    "scripts": {
+        "start": "yarn truffle test"
+    },
+    "dependencies": {
+        "bignumber.js": "^9.0.0",
+        "decimal.js": "^10.2.0",
+        "lodash": "^4.17.15"
+    },
+    "devDependencies": {
+        "solc": "^0.5.11",
+        "truffle": "^5.0.34"
+    }
+}
