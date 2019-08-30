@@ -15,7 +15,7 @@ contract('CompareCobbDouglas', accounts => {
     let sumGasSavings = 0;
     let sumErrorImprovement = 0;
     for (let i = 0; i < NUM_TESTS; i++) {
-        it(`test case ${i+1}...`, async () => {
+        it(`test case ${i+1}/${NUM_TESTS}...`, async () => {
             const [ gas, error ] =
                 await compareImplementations(contract, getRandomParams());
             sumGasSavings += gas;
