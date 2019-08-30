@@ -25,7 +25,7 @@ contract('CompareCobbDouglas', accounts => {
 
     after(() => {
         console.log(`Average gas savings: ${sumGasSavings / NUM_TESTS}`);
-        console.log(`Average error improvement: ${sumErrorImprovement / NUM_TESTS}`);
+        console.log(`Average error improvement: ${Math.abs(sumErrorImprovement) / NUM_TESTS}`);
     });
 });
 
