@@ -3,12 +3,14 @@
     "license": "Apache-2.0",
     "version": "0.2",
     "scripts": {
-        "start": "yarn truffle compile && yarn truffle test"
+        "compare": "yarn truffle compile && yarn truffle test ./test/compare.js",
+        "ln": "yarn truffle compile && yarn truffle test ./test/ln.js && python3 py/plot_ln_data.py"
     },
     "dependencies": {
         "bignumber.js": "^9.0.0",
         "decimal.js": "^10.2.0",
-        "lodash": "^4.17.15"
+        "lodash": "^4.17.15",
+        "mz": "^2.7.0"
     },
     "devDependencies": {
         "solc": "^0.5.11",
