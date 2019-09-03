@@ -1,8 +1,9 @@
 {
     "name": "cobb-douglas-solidity",
     "license": "Apache-2.0",
+    "version": "0.2",
     "scripts": {
-        "start": "yarn truffle test"
+        "start": "yarn truffle compile && yarn truffle test"
     },
     "dependencies": {
         "bignumber.js": "^9.0.0",

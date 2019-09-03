@@ -4,7 +4,7 @@ const Decimal = require('decimal.js');
 const crypto = require('crypto');
 const _ = require('lodash');
 
-const NUM_TESTS = 256;
+const NUM_TESTS = 128;
 
 contract('CompareCobbDouglas', accounts => {
     let contract;
@@ -12,31 +12,54 @@ contract('CompareCobbDouglas', accounts => {
         contract = await CompareCobbDouglas.deployed();
     });
 
-    let sumGasSavings = 0;
-    let sumErrorImprovement = 0;
+    const oldGasCosts = [];
+    const oldErrors = [];
+    const newGasCosts = [];
+    const newErrors = [];
     for (let i = 0; i < NUM_TESTS; i++) {
         it(`test case ${i+1}/${NUM_TESTS}...`, async () => {
-            const [ gas, error ] =
-                await compareImplementations(contract, getRandomParams());
-            sumGasSavings += gas;
-            sumErrorImprovement += error;
+            const params = getRandomParams();
+            const [ [error1, gas1], [error2, gas2] ] = await Promise.all([
+                testImplementation(contract.callSuperSimplified, params),
+                testImplementation(contract.callFixedMath, params),
+            ]);
+            oldErrors.push(error1);
+            newErrors.push(error2);
+            oldGasCosts.push(gas1);
+            newGasCosts.push(gas2);
         });
     }
 
     after(() => {
-        console.log(`Average gas savings: ${sumGasSavings / NUM_TESTS}`);
-        console.log(`Average error improvement: ${Math.abs(sumErrorImprovement) / NUM_TESTS}`);
+        const averageGasSaved = _.reduce(
+            _.zip(newGasCosts, oldGasCosts),
+            (s, [n, o]) => s += o - n,
+            0,
+        ) / NUM_TESTS;
+        const averageErorImprovement = _.reduce(
+            _.zip(newErrors, oldErrors),
+            (s, [n, o]) => s += Math.abs(o / n),
+            0,
+        ) / NUM_TESTS;
+        console.log(`Average gas savings: ${averageGasSaved}`);
+        console.log(`Average error improvement: ${averageErorImprovement}`);
+        console.log(`Average new error: ${_.sum(newErrors) / NUM_TESTS}`);
+        console.log(`Average new gas: ${_.sum(newGasCosts) / NUM_TESTS}`);
     });
 });
 
 function getRandomInteger(min, max) {
     const range = new BigNumber(max).minus(min);
-    const random = new BigNumber(crypto.randomBytes(32).toString('hex'), 16);
-    return random.mod(range).plus(min).integerValue();
+    return getRandomPortion(range).plus(min);
 }
 
 function getRandomPortion(total) {
-    return new BigNumber(total).times(Math.random()).integerValue();
+    // Generate a really high precision number between [0, 1]
+    const r = new BigNumber(
+        crypto.randomBytes(32).toString('hex'),
+        16,
+    ).dividedBy(new BigNumber(2).pow(256).minus(1));
+    return new BigNumber(total).times(r).integerValue();
 }
 
 function getRandomParams(overrides) {
@@ -76,31 +99,18 @@ function cobbDouglas(params) {
     );
 }
 
-async function compareImplementations(contract, params) {
-
-    const [result1, gas1] = await callAndGetGas(
-        contract.callSuperSimplified,
-        params.totalRewards,
-        params.ownerFees,
-        params.totalFees,
-        params.ownerStake,
-        params.totalStake,
-    );
-    const [result2, gas2] = await callAndGetGas(
-        contract.callFixedMath,
-        params.totalRewards,
-        params.ownerFees,
-        params.totalFees,
-        params.ownerStake,
-        params.totalStake,
-    );
+async function testImplementation(method, params) {
     const expectedResult = cobbDouglas(params);
-    const error1 = result1.minus(expectedResult).dividedBy(expectedResult).abs().toNumber();
-    const error2 = result2.minus(expectedResult).dividedBy(expectedResult).abs().toNumber();
-    const gasChange = gas2 - gas1;
-    const errorChange = error2 - error1;
-    console.log(`gasChange: ${gasChange}, errorChange: ${errorChange}`)
-    return [ gasChange, errorChange ];
+    const [result, gas] = await callAndGetGas(
+        method,
+        params.totalRewards,
+        params.ownerFees,
+        params.totalFees,
+        params.ownerStake,
+        params.totalStake,
+    );
+    const error = result.minus(expectedResult).dividedBy(expectedResult).abs().toNumber();
+    return [ error, gas ];
 }
 
 async function callAndGetGas(method, ...params) {
