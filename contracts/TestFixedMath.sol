@@ -6,4 +6,8 @@ contract TestFixedMath {
     function ln(int256 x) external pure returns (int256) {
         return LibFixedMath._ln(x);
     }
+
+    function exp(int256 x) external pure returns (int256) {
+        return LibFixedMath._exp(x);
+    }
 }

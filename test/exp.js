@@ -8,7 +8,7 @@ const { callAndGetGas, fromFixed, getRandomFloat, toFixed, toDecimal } = require
 
 const NUM_SAMPLES = parseInt(env.SAMPLES || 1024);
 
-contract('Sampling ln()', accounts => {
+contract('Sampling exp()', accounts => {
     let contract;
     before(async () => {
         contract = await TestFixedMath.deployed();
@@ -17,13 +17,13 @@ contract('Sampling ln()', accounts => {
     const samples = [];
     for (let i = 0; i < NUM_SAMPLES; i++) {
         it(`sample case ${i+1}/${NUM_SAMPLES}...`, async () => {
-            const input = getRandomFloat(0, 1);
+            const input = getRandomFloat(-65, 0);
             const [ fixedResult ] = await callAndGetGas(
-                contract.ln,
+                contract.exp,
                 toFixed(input),
             );
             const result = fromFixed(fixedResult);
-            const expectedResult = ln(input);
+            const expectedResult = exp(input);
             const error = expectedResult.minus(result).abs().toNumber();
             samples.push({
                 input: input.toString(10),
@@ -34,7 +34,7 @@ contract('Sampling ln()', accounts => {
     }
 
     after(async () => {
-        const OUTPUT_FILE = path.resolve(__dirname, '../data/ln.json');
+        const OUTPUT_FILE = path.resolve(__dirname, '../data/exp.json');
         await fs.writeFile(
             OUTPUT_FILE,
             JSON.stringify(samples, null, '  '),
@@ -43,6 +43,6 @@ contract('Sampling ln()', accounts => {
     });
 });
 
-function ln(x) {
-    return new BigNumber(toDecimal(x).naturalLogarithm().toFixed(100));
+function exp(x) {
+    return new BigNumber(toDecimal(x).exp().toFixed(100));
 }

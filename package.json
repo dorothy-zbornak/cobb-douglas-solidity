@@ -4,7 +4,8 @@
     "version": "0.2",
     "scripts": {
         "compare": "yarn truffle compile && yarn truffle test ./test/compare.js",
-        "ln": "yarn truffle compile && yarn truffle test ./test/ln.js && python3 py/plot_ln_data.py"
+        "ln": "yarn truffle compile && yarn truffle test ./test/ln.js && python3 py/plot_ln_data.py",
+        "exp": "yarn truffle compile && yarn truffle test ./test/exp.js && python3 py/plot_exp_data.py"
     },
     "dependencies": {
         "bignumber.js": "^9.0.0",
